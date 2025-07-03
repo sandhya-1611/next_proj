@@ -7,18 +7,8 @@ import AdminDashboard from './app/pages/AdminDashboard'
 
 function App() {
   return (
-    <div className="antialiased">
-      <DataProvider>
-        <AuthProvider>
-          <Router>
-            <Routes>
-              <Route path="/" element={<Home />} />
-              <Route path="/patient/dashboard" element={<PatientDashboard />} />
-              <Route path="/admin/dashboard" element={<AdminDashboard />} />
-            </Routes>
-          </Router>
-        </AuthProvider>
-      </DataProvider>
+    <div style={{backgroundColor: 'red', color: 'white', padding: '20px'}}>
+      <h1>Hello World - App is working!</h1>
     </div>
   )
 }
