@@ -1,5 +1,3 @@
-"use client"
-
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { usersData } from "@/config/usersData";
 import { hashPassword } from "../utils/hashPassword";

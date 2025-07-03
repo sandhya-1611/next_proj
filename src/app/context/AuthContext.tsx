@@ -1,6 +1,4 @@
-"use client"
-
-import { useRouter } from "next/navigation";
+import { useNavigate } from "react-router-dom";
 import { createContext, useContext, useEffect, useState } from "react";
 
 type User = {
@@ -22,7 +20,7 @@ const Authcontext = createContext<AuthContextType | undefined>(undefined)
 export function AuthProvider({children}: {children: React.ReactNode}){
  
     const [user, setUser] = useState<User>(null)
-    const router = useRouter()
+    const navigate = useNavigate()
 
     useEffect(() => {
         // check localStorage for loggedInUser
@@ -33,31 +31,31 @@ export function AuthProvider({children}: {children: React.ReactNode}){
             setUser(userData)
             // navigate them to the respective dashboard using the parsed data directly
             if(userData && userData.isAdmin){
-                router.push("/admin/dashboard")
+                navigate("/admin/dashboard")
             }else{
-                router.push("/patient/dashboard")
+                navigate("/patient/dashboard")
             }
         }
         else{
             // if no user is loggen in, redirect them to the login page
-            router.push("/")
+            navigate("/")
         }
-    },[])
+    },[navigate])
 
     const logIn = (userData: User) => {
         setUser(userData)
         localStorage.setItem("loggedInUser",JSON.stringify(userData))
         if(userData && userData.isAdmin){
-            router.push("/admin/dashboard")
+            navigate("/admin/dashboard")
         }else{
-            router.push("/patient/dashboard")
+            navigate("/patient/dashboard")
         }
     }
 
     const logOut = () => {
         setUser(null)
         localStorage.removeItem("loggedInUser")
-        router.push("/")
+        navigate("/")
     }
 
     return <Authcontext.Provider value={{user, logIn, logOut}}>{children}</Authcontext.Provider>
