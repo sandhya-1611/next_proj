@@ -1,7 +1,3 @@
-"use client"
-import { DashboardLayout } from '@toolpad/core/DashboardLayout';
-import { AppProvider } from '@toolpad/core/AppProvider';
-import { Navigation } from '@toolpad/core';
 import { useState, useMemo } from 'react';
 import { 
   CalendarTodayRounded, 
@@ -11,39 +7,30 @@ import {
   LocalHospitalRounded,
   AddRounded
 } from '@mui/icons-material';
-import { Typography, Card, CardContent, Button, Box, TextField, Dialog, DialogTitle, DialogContent, DialogActions } from '@mui/material';
-import { useAuth } from '../../context/AuthContext';
-import { useData } from '../../context/DataContext';
+import { 
+  Typography, 
+  Card, 
+  CardContent, 
+  Button, 
+  Box, 
+  TextField, 
+  Dialog, 
+  DialogTitle, 
+  DialogContent, 
+  DialogActions,
+  AppBar,
+  Toolbar,
+  Drawer,
+  List,
+  ListItem,
+  ListItemIcon,
+  ListItemText,
+  ListItemButton
+} from '@mui/material';
+import { useAuth } from '../context/AuthContext';
+import { useData } from '../context/DataContext';
 
-// Navigation configuration for patient dashboard
-const NAVIGATION: Navigation = [
-  {
-    segment: 'upcoming',
-    title: 'Upcoming Appointments',
-    icon: <CalendarTodayRounded />,
-  },
-  {
-    segment: 'history',
-    title: 'Appointment History',
-    icon: <HistoryRounded />,
-  },
-  {
-    segment: 'profile',
-    title: 'Profile',
-    icon: <PersonRounded />,
-  },
-  {
-    kind: 'divider',
-  },
-  {
-    segment: 'logout',
-    title: 'Logout',
-    icon: <ExitToAppRounded />,
-    action: true,
-  },
-];
-
-// Helper function to format date
+// Helper functions
 const formatDate = (dateString: string) => {
   const date = new Date(dateString);
   return date.toLocaleDateString('en-US', { 
@@ -53,7 +40,6 @@ const formatDate = (dateString: string) => {
   });
 };
 
-// Helper function to format time
 const formatTime = (dateString: string) => {
   const date = new Date(dateString);
   return date.toLocaleTimeString('en-US', { 
@@ -62,7 +48,100 @@ const formatTime = (dateString: string) => {
   });
 };
 
-// Content components for each section
+// Navigation items
+const navigationItems = [
+  { id: 'upcoming', title: 'Upcoming Appointments', icon: <CalendarTodayRounded /> },
+  { id: 'history', title: 'Appointment History', icon: <HistoryRounded /> },
+  { id: 'profile', title: 'Profile', icon: <PersonRounded /> },
+];
+
+// New appointment dialog component
+const NewAppointmentDialog = ({ 
+  open, 
+  onClose, 
+  onSubmit 
+}: { 
+  open: boolean; 
+  onClose: () => void;
+  onSubmit: (appointmentData: any) => void;
+}) => {
+  const [formData, setFormData] = useState({
+    date: '',
+    time: '',
+    treatment: '',
+    notes: ''
+  });
+
+  const handleSubmit = () => {
+    onSubmit(formData);
+    onClose();
+    setFormData({ date: '', time: '', treatment: '', notes: '' });
+  };
+
+  return (
+    <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
+      <DialogTitle>Schedule New Appointment</DialogTitle>
+      <DialogContent>
+        <Box display="flex" flexDirection="column" gap={2} style={{ marginTop: '10px' }}>
+          <TextField
+            label="Preferred Date"
+            type="date"
+            variant="outlined"
+            InputLabelProps={{ shrink: true }}
+            fullWidth
+            value={formData.date}
+            onChange={(e) => setFormData({...formData, date: e.target.value})}
+          />
+          <TextField
+            label="Preferred Time"
+            type="time"
+            variant="outlined"
+            InputLabelProps={{ shrink: true }}
+            fullWidth
+            value={formData.time}
+            onChange={(e) => setFormData({...formData, time: e.target.value})}
+          />
+          <TextField
+            label="Treatment Type"
+            select
+            variant="outlined"
+            fullWidth
+            SelectProps={{ native: true }}
+            value={formData.treatment}
+            onChange={(e) => setFormData({...formData, treatment: e.target.value})}
+          >
+            <option value="">Select treatment</option>
+            <option value="Routine Cleaning">Routine Cleaning</option>
+            <option value="Regular Checkup">Regular Checkup</option>
+            <option value="Dental Filling">Dental Filling</option>
+            <option value="Teeth Whitening">Teeth Whitening</option>
+            <option value="Emergency Visit">Emergency Visit</option>
+            <option value="Root Canal">Root Canal</option>
+            <option value="Tooth Extraction">Tooth Extraction</option>
+          </TextField>
+          <TextField
+            label="Notes (Optional)"
+            multiline
+            rows={3}
+            variant="outlined"
+            placeholder="Any specific concerns or requests..."
+            fullWidth
+            value={formData.notes}
+            onChange={(e) => setFormData({...formData, notes: e.target.value})}
+          />
+        </Box>
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={onClose}>Cancel</Button>
+        <Button onClick={handleSubmit} variant="contained" color="primary">
+          Schedule Appointment
+        </Button>
+      </DialogActions>
+    </Dialog>
+  );
+};
+
+// Content components
 const UpcomingAppointmentsContent = ({ 
   onCreateAppointment, 
   upcomingIncidents 
@@ -126,7 +205,6 @@ const UpcomingAppointmentsContent = ({
         </Box>
       </Box>
 
-      {/* Custom table for upcoming appointments */}
       <Card>
         <CardContent>
           <Typography variant="h6" gutterBottom>Upcoming Appointments List</Typography>
@@ -144,7 +222,7 @@ const UpcomingAppointmentsContent = ({
                   </tr>
                 </thead>
                 <tbody>
-                  {upcomingIncidents.map((incident, index) => (
+                  {upcomingIncidents.map((incident) => (
                     <tr key={incident.id} style={{ borderBottom: '1px solid #e0e0e0' }}>
                       <td style={{ padding: '12px' }}>{formatDate(incident.appointmentDate)}</td>
                       <td style={{ padding: '12px' }}>{formatTime(incident.appointmentDate)}</td>
@@ -228,7 +306,6 @@ const AppointmentHistoryContent = ({ completedIncidents }: { completedIncidents:
         </Box>
       </Box>
 
-      {/* Custom table for appointment history */}
       <Card>
         <CardContent>
           <Typography variant="h6" gutterBottom>Appointment History</Typography>
@@ -246,7 +323,7 @@ const AppointmentHistoryContent = ({ completedIncidents }: { completedIncidents:
                   </tr>
                 </thead>
                 <tbody>
-                  {completedIncidents.map((incident, index) => (
+                  {completedIncidents.map((incident) => (
                     <tr key={incident.id} style={{ borderBottom: '1px solid #e0e0e0' }}>
                       <td style={{ padding: '12px' }}>{formatDate(incident.appointmentDate)}</td>
                       <td style={{ padding: '12px' }}>{incident.title}</td>
@@ -374,95 +451,10 @@ const ProfileContent = ({ user, patient }: { user: any; patient: any }) => (
   </div>
 );
 
-// New appointment dialog component
-const NewAppointmentDialog = ({ 
-  open, 
-  onClose, 
-  onSubmit 
-}: { 
-  open: boolean; 
-  onClose: () => void;
-  onSubmit: (appointmentData: any) => void;
-}) => {
-  const [formData, setFormData] = useState({
-    date: '',
-    time: '',
-    treatment: '',
-    notes: ''
-  });
-
-  const handleSubmit = () => {
-    onSubmit(formData);
-    onClose();
-    setFormData({ date: '', time: '', treatment: '', notes: '' });
-  };
-
-  return (
-    <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
-      <DialogTitle>Schedule New Appointment</DialogTitle>
-      <DialogContent>
-        <Box display="flex" flexDirection="column" gap={2} style={{ marginTop: '10px' }}>
-          <TextField
-            label="Preferred Date"
-            type="date"
-            variant="outlined"
-            InputLabelProps={{ shrink: true }}
-            fullWidth
-            value={formData.date}
-            onChange={(e) => setFormData({...formData, date: e.target.value})}
-          />
-          <TextField
-            label="Preferred Time"
-            type="time"
-            variant="outlined"
-            InputLabelProps={{ shrink: true }}
-            fullWidth
-            value={formData.time}
-            onChange={(e) => setFormData({...formData, time: e.target.value})}
-          />
-          <TextField
-            label="Treatment Type"
-            select
-            variant="outlined"
-            fullWidth
-            SelectProps={{ native: true }}
-            value={formData.treatment}
-            onChange={(e) => setFormData({...formData, treatment: e.target.value})}
-          >
-            <option value="">Select treatment</option>
-            <option value="Routine Cleaning">Routine Cleaning</option>
-            <option value="Regular Checkup">Regular Checkup</option>
-            <option value="Dental Filling">Dental Filling</option>
-            <option value="Teeth Whitening">Teeth Whitening</option>
-            <option value="Emergency Visit">Emergency Visit</option>
-            <option value="Root Canal">Root Canal</option>
-            <option value="Tooth Extraction">Tooth Extraction</option>
-          </TextField>
-          <TextField
-            label="Notes (Optional)"
-            multiline
-            rows={3}
-            variant="outlined"
-            placeholder="Any specific concerns or requests..."
-            fullWidth
-            value={formData.notes}
-            onChange={(e) => setFormData({...formData, notes: e.target.value})}
-          />
-        </Box>
-      </DialogContent>
-      <DialogActions>
-        <Button onClick={onClose}>Cancel</Button>
-        <Button onClick={handleSubmit} variant="contained" color="primary">
-          Schedule Appointment
-        </Button>
-      </DialogActions>
-    </Dialog>
-  );
-};
-
-const PatientDashboard = () => {
+export default function PatientDashboard() {
   const [currentPage, setCurrentPage] = useState('upcoming');
   const [appointmentDialogOpen, setAppointmentDialogOpen] = useState(false);
+  const [drawerOpen, setDrawerOpen] = useState(true);
   const { user, logOut } = useAuth();
   const { getIncidentsByPatientId, getPatientById, addIncident, isLoading } = useData();
 
@@ -485,14 +477,6 @@ const PatientDashboard = () => {
     return { upcomingIncidents: upcoming, completedIncidents: completed };
   }, [allIncidents]);
 
-  const handleNavigation = (segment: string) => {
-    if (segment === 'logout') {
-      logOut();
-      return;
-    }
-    setCurrentPage(segment);
-  };
-
   const handleCreateAppointment = () => {
     setAppointmentDialogOpen(true);
   };
@@ -500,17 +484,16 @@ const PatientDashboard = () => {
   const handleSubmitAppointment = (appointmentData: any) => {
     if (!user?.patientId) return;
     
-    // Create appointment date string
     const appointmentDate = `${appointmentData.date}T${appointmentData.time}:00`;
     
     const newIncident = {
-      id: '', // Will be auto-generated in addIncident
+      id: '',
       patientId: user.patientId,
       title: appointmentData.treatment,
       description: appointmentData.notes || 'Patient scheduled appointment',
       comments: '',
       appointmentDate: appointmentDate,
-      cost: 0, // Cost to be determined
+      cost: 0,
       status: 'Scheduled',
       files: []
     };
@@ -541,36 +524,63 @@ const PatientDashboard = () => {
     }
   };
 
+  const drawerWidth = 240;
+
   return (
-    <AppProvider
-      navigation={NAVIGATION}
-      branding={{
-        title: 'DentalFlow - Patient Portal',
-        logo: <LocalHospitalRounded />,
-      }}
-      router={{
-        pathname: `/${currentPage}`,
-        searchParams: new URLSearchParams(),
-        navigate: (path) => {
-          const pathStr = typeof path === 'string' ? path : path.toString();
-          const segment = pathStr.replace('/', '') || 'upcoming';
-          handleNavigation(segment);
-        },
-      }}
-    >
-      <DashboardLayout>
-        <div style={{ padding: '20px' }}>
-          {renderContent()}
-        </div>
-      </DashboardLayout>
-      
+    <Box sx={{ display: 'flex' }}>
+      <AppBar position="fixed" sx={{ zIndex: (theme) => theme.zIndex.drawer + 1 }}>
+        <Toolbar>
+          <LocalHospitalRounded sx={{ mr: 2 }} />
+          <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1 }}>
+            DentalFlow - Patient Portal
+          </Typography>
+          <Button color="inherit" onClick={logOut} startIcon={<ExitToAppRounded />}>
+            Logout
+          </Button>
+        </Toolbar>
+      </AppBar>
+
+      <Drawer
+        variant="permanent"
+        sx={{
+          width: drawerWidth,
+          flexShrink: 0,
+          '& .MuiDrawer-paper': {
+            width: drawerWidth,
+            boxSizing: 'border-box',
+          },
+        }}
+      >
+        <Toolbar />
+        <Box sx={{ overflow: 'auto' }}>
+          <List>
+            {navigationItems.map((item) => (
+              <ListItem key={item.id} disablePadding>
+                <ListItemButton 
+                  selected={currentPage === item.id}
+                  onClick={() => setCurrentPage(item.id)}
+                >
+                  <ListItemIcon>
+                    {item.icon}
+                  </ListItemIcon>
+                  <ListItemText primary={item.title} />
+                </ListItemButton>
+              </ListItem>
+            ))}
+          </List>
+        </Box>
+      </Drawer>
+
+      <Box component="main" sx={{ flexGrow: 1, p: 3 }}>
+        <Toolbar />
+        {renderContent()}
+      </Box>
+
       <NewAppointmentDialog 
         open={appointmentDialogOpen} 
         onClose={() => setAppointmentDialogOpen(false)}
         onSubmit={handleSubmitAppointment}
       />
-    </AppProvider>
-  )
+    </Box>
+  );
 }
-
-export default PatientDashboard

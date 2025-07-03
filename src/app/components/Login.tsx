@@ -1,5 +1,3 @@
-"use client"
-
 import { useAuth } from "@/app/context/AuthContext"
 import { acceptableCredentials } from "@/app/utils/acceptableEmails"
 import { checkIsAdmin } from "@/app/utils/checkIsAdmin"
